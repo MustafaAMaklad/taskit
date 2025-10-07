@@ -22,7 +22,7 @@ class TaskResource extends JsonResource
             'status' => $this->status,
             'due_date' => $this->due_date,
             'created_at' => $this->created_at,
-            'subtasks' => TaskResource::collection($this->whenLoaded('subtasks')),
+            'subtasks' => TaskResource::collection($this->whenLoaded('subTasks')),
         ];
     }
 }
