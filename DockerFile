@@ -1,0 +1,28 @@
+# Use the official PHP 8.2 with Apache image
+FROM php:8.2-apache
+
+# Enable commonly needed PHP extensions
+RUN apt-get update && apt-get install -y \
+    libpng-dev libonig-dev libxml2-dev zip unzip git curl \
+ && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+
+# Enable Apache mod_rewrite (required for Laravel routing)
+RUN a2enmod rewrite
+
+# Copy application code
+WORKDIR /var/www/html
+COPY . .
+
+# Install Composer (copied from official composer image)
+COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+
+# Give proper permissions for Laravel
+RUN chown -R www-data:www-data storage bootstrap/cache
+
+# Configure Apache document root to /public
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/000-default.conf
+
+EXPOSE 80
+CMD ["apache2-foreground"]
