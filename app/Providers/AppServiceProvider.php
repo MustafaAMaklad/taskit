@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\ServiceProvider;
 
@@ -34,6 +35,11 @@ class AppServiceProvider extends ServiceProvider
                 'message' => array_first(is_array($errors) ? $errors : [$errors]),
                 'errors' => $errors,
             ], $statusCode);
+        });
+
+        JsonResource::macro('message', function (string $message) {
+            /** @var JsonResource $this */
+            return $this->additional(['message' => $message]);
         });
     }
 }

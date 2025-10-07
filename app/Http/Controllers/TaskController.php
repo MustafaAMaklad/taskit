@@ -60,7 +60,7 @@ class TaskController
                     'assignee_id',
                     'main_task_id'
                 ]))
-        );
+        )->message(__('success.task.created'));
     }
 
     /**
@@ -88,7 +88,8 @@ class TaskController
                     'assignee_id',
                     'main_task_id'
                 ]))
-        );
+        )
+            ->message(__('success.task.updated'));
     }
 
     /**
@@ -99,7 +100,8 @@ class TaskController
         return TaskResource::make(
             $this->taskService
                 ->updateStatus($task, $request->only(['status']))
-        );
+        )
+            ->message(__('success.task.updated'));
     }
 
     /**
@@ -111,6 +113,6 @@ class TaskController
 
         $this->taskService->delete($task);
 
-        return response()->success();
+        return response()->success(__('success.task.deleted'));
     }
 }

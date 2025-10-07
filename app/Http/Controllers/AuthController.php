@@ -21,13 +21,13 @@ class AuthController
 
         return AccessTokenResource::make(
             Auth::user()->createToken('personal-access-token')
-        );
+        )->message(__('auth.login'));
     }
 
     public function logout(): JsonResponse
     {
         auth('api')->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'success']);
+        return response()->success(__('auth.logout'));
     }
 }
