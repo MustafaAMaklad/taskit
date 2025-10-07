@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\AsDueDate;
 use App\Enums\TaskStatus;
 use App\Policies\TaskPolicy;
 use Illuminate\Contracts\Database\Eloquent\Builder;
@@ -28,7 +29,7 @@ class Task extends Model
     {
         return [
             'status' => TaskStatus::class,
-            'due_date' => 'datetime',
+            'due_date' => AsDueDate::class,
         ];
     }
 
