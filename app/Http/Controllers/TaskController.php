@@ -8,6 +8,7 @@ use App\Http\Requests\Task\UpdateRequest;
 use App\Http\Requests\Task\UpdateStatusRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Task;
+use App\Services\Task\TaskService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
@@ -16,13 +17,20 @@ use Spatie\QueryBuilder\QueryBuilder;
 
 class TaskController
 {
+    public function __construct(private TaskService $taskService)
+    {
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(IndexRequest $request): JsonResource
     {
         return TaskResource::collection(
-            QueryBuilder::for(Task::visibleTo($request->user()), $request)
+            QueryBuilder::for(
+                Task::visibleTo($request->user()),
+                $request
+            )
                 ->allowedFilters([
                     AllowedFilter::exact('status'),
                     AllowedFilter::scope('from_date'),
@@ -44,13 +52,14 @@ class TaskController
     public function store(StoreRequest $request): JsonResource
     {
         return TaskResource::make(
-            Task::create($request->only([
-                'title',
-                'description',
-                'due_date',
-                'assignee_id',
-                'main_task_id'
-            ]))->refresh()
+            $this->taskService
+                ->create($request->only([
+                    'title',
+                    'description',
+                    'due_date',
+                    'assignee_id',
+                    'main_task_id'
+                ]))
         );
     }
 
@@ -69,16 +78,17 @@ class TaskController
      */
     public function update(UpdateRequest $request, Task $task): JsonResource
     {
-        $task->update($request->only([
-            'title',
-            'description',
-            'due_date',
-            'status',
-            'assignee_id',
-            'main_task_id'
-        ]));
-
-        return TaskResource::make($task);
+        return TaskResource::make(
+            $this->taskService
+                ->update($task, $request->only([
+                    'title',
+                    'description',
+                    'due_date',
+                    'status',
+                    'assignee_id',
+                    'main_task_id'
+                ]))
+        );
     }
 
     /**
@@ -86,9 +96,10 @@ class TaskController
      */
     public function updateStatus(UpdateStatusRequest $request, Task $task): JsonResource
     {
-        $task->update($request->only(['status']));
-
-        return TaskResource::make($task);
+        return TaskResource::make(
+            $this->taskService
+                ->updateStatus($task, $request->only(['status']))
+        );
     }
 
     /**
@@ -98,7 +109,7 @@ class TaskController
     {
         Gate::authorize('delete', $task);
 
-        $task->delete();
+        $this->taskService->delete($task);
 
         return response()->success();
     }

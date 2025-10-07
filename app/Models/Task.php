@@ -69,4 +69,10 @@ class Task extends Model
 
         return $query;
     }
+
+    #[Scope]
+    protected function incomplete(Builder $query): Builder
+    {
+        return $query->whereNot('status', TaskStatus::COMPLETED->value);
+    }
 }
