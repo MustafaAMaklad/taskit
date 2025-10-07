@@ -17,12 +17,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory()
-            ->count(10)
-            ->state(new Sequence(
-                ['role' => Role::ASSIGNEE],
-                ['role' => Role::ASSIGNOR],
-            ))
+        User::factory()->state([
+            'username' => 'manager',
+            'role' => Role::ASSIGNOR
+        ])
+            ->create();
+
+        User::factory()->state([
+            'username' => 'assignee1',
+            'role' => Role::ASSIGNEE
+        ])
+            ->create();
+
+        User::factory()->state([
+            'username' => 'assignee2',
+            'role' => Role::ASSIGNEE
+        ])
             ->create();
     }
 }
