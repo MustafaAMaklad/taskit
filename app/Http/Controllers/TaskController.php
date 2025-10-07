@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Task\IndexRequest;
 use App\Http\Requests\Task\StoreRequest;
 use App\Http\Requests\Task\UpdateRequest;
+use App\Http\Requests\Task\UpdateStatusRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Gate;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -20,7 +22,7 @@ class TaskController
     public function index(IndexRequest $request): JsonResource
     {
         return TaskResource::collection(
-            QueryBuilder::for(Task::class, $request)
+            QueryBuilder::for(Task::visibleTo($request->user()), $request)
                 ->allowedFilters([
                     AllowedFilter::exact('status'),
                     AllowedFilter::scope('from_date'),
@@ -57,6 +59,8 @@ class TaskController
      */
     public function show(Task $task): JsonResource
     {
+        Gate::authorize('view', $task);
+
         return TaskResource::make($task->load('subTasks'));
     }
 
@@ -69,9 +73,20 @@ class TaskController
             'title',
             'description',
             'due_date',
+            'status',
             'assignee_id',
             'main_task_id'
         ]));
+
+        return TaskResource::make($task);
+    }
+
+    /**
+     * Update the specified resource's status in storage.
+     */
+    public function updateStatus(UpdateStatusRequest $request, Task $task): JsonResource
+    {
+        $task->update($request->only(['status']));
 
         return TaskResource::make($task);
     }
@@ -81,6 +96,8 @@ class TaskController
      */
     public function destroy(Task $task): JsonResponse
     {
+        Gate::authorize('delete', $task);
+
         $task->delete();
 
         return response()->success();

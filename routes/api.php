@@ -10,7 +10,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    Route::middleware('manager')->group(function () {
-        Route::apiResource('tasks', TaskController::class);
-    });
+    Route::apiResource('tasks', TaskController::class)
+        ->only(['index', 'show']);
+
+    Route::apiResource('tasks', TaskController::class)
+        ->only(['store', 'update', 'destroy'])
+        ->middleware('role:assignor');
+
+    Route::patch('/tasks/{task}/status', [TaskController::class, 'updateStatus'])
+        ->middleware('role:assignee');
 });

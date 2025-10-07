@@ -3,13 +3,16 @@
 namespace App\Models;
 
 use App\Enums\TaskStatus;
+use App\Policies\TaskPolicy;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
+#[UsePolicy(TaskPolicy::class)]
 class Task extends Model
 {
     protected $fillable = [
@@ -25,6 +28,7 @@ class Task extends Model
     {
         return [
             'status' => TaskStatus::class,
+            'due_date' => 'datetime',
         ];
     }
 
@@ -53,5 +57,15 @@ class Task extends Model
     protected function toDate(Builder $query, string $date): Builder
     {
         return $query->whereDate('due_date', '<=', Carbon::parse($date)->toDateString());
+    }
+
+    #[Scope]
+    protected function visibleTo(Builder $query, User $user): Builder
+    {
+        if ($user->isAssignee()) {
+            return $query->where('assignee_id', $user->id);
+        }
+
+        return $query;
     }
 }

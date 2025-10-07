@@ -2,18 +2,18 @@
 
 namespace App\Http\Requests\Task;
 
-use App\Models\Task;
+use App\Enums\TaskStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreRequest extends FormRequest
+class UpdateStatusRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return $this->user()->can('create', Task::class);
+        return $this->user()->can('updateStatus', $this->route('task'));
     }
 
     /**
@@ -24,11 +24,7 @@ class StoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'due_date' => ['required', 'date', 'after_or_equal:today'],
-            'assignee_id' => ['required', Rule::exists('users', 'id')->where('role', 'assignee')],
-            'main_task_id' => ['nullable', 'exists:tasks,id'],
+            'status' => ['required', Rule::in(TaskStatus::cases())],
         ];
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Task;
 
 use App\Enums\Role;
+use App\Enums\TaskStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -14,7 +15,7 @@ class UpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('update', $this->route('task'));
     }
 
     /**
@@ -28,6 +29,7 @@ class UpdateRequest extends FormRequest
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string', 'max:1000'],
             'due_date' => ['sometimes', 'required', 'date', 'after_or_equal:today'],
+            'status' => ['sometimes', 'required', Rule::in(TaskStatus::cases())],
             'assignee_id' => ['sometimes', 'required', Rule::exists('users', 'id')->where('role', Role::ASSIGNEE)],
             'main_task_id' => ['sometimes', 'nullable', Rule::exists('tasks', 'id')->whereNot('id', $this->route('task')->id)],
         ];
@@ -40,7 +42,7 @@ class UpdateRequest extends FormRequest
                 if ($this->circularDependency()) {
                     $validator->errors()->add(
                         'main_task_id',
-                        'This task is depending on the given task.'
+                        __('error.task.circular_dependency')
                     );
                 }
             }

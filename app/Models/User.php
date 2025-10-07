@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Role;
+use BackedEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -48,5 +49,20 @@ class User extends Authenticatable
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class, 'assignee_id');
+    }
+
+    public function isAssignor(): bool
+    {
+        return $this->hasRole(Role::ASSIGNOR);
+    }
+
+    public function isAssignee(): bool
+    {
+        return $this->hasRole(Role::ASSIGNEE);
+    }
+
+    public function hasRole(BackedEnum|string $role): bool
+    {
+        return $this->role === (is_string($role) ? Role::tryFrom($role) : $role);
     }
 }
